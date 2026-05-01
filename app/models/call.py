@@ -5,14 +5,10 @@ class Call(Base):
     __tablename__ = "calls"
 
     id = Column(Integer, primary_key=True, index=True)
-    workspace_id = Column(Integer, ForeignKey("workspaces.id"))
     agent_id = Column(Integer, ForeignKey("agents.id"))
-
-    direction = Column(String)  # inbound / outbound
-    status = Column(String)     # initiated / completed / failed
-
+    workspace_id = Column(Integer)
+    status = Column(String)
+    direction = Column(String)
     transcript = Column(Text)
-    summary = Column(String)
+    summary = Column(Text)
     sentiment = Column(String)
-
-    duration = Column(Integer)
