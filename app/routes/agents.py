@@ -2,6 +2,9 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from app.models.agent import Agent
 from app.utils.deps import get_db, get_current_user
+from app.services.ai_service import generate_response
+from app.models.call import Call
+from app.models.call_turn import CallTurn
 
 router = APIRouter()
 
@@ -98,3 +101,58 @@ def delete_agent(
     db.commit()
 
     return {"message": "Agent deleted"}
+
+@router.post("/{agent_id}/chat")
+def chat_with_agent(
+    agent_id: int,
+    message: str,
+    db: Session = Depends(get_db),
+    current_user = Depends(get_current_user)
+):
+    agent = db.query(Agent).filter(
+        Agent.id == agent_id,
+        Agent.workspace_id == current_user.workspace_id
+    ).first()
+
+    if not agent:
+        raise HTTPException(status_code=404, detail="Agent not found")
+
+    # create call
+    call = Call(
+        agent_id=agent.id,
+        workspace_id=current_user.workspace_id,
+        status="initiated",
+        direction="inbound"
+    )
+    db.add(call)
+    db.commit()
+    db.refresh(call)
+
+    # save user message
+    user_turn = CallTurn(
+        call_id=call.id,
+        role="user",
+        message=message
+    )
+    db.add(user_turn)
+
+    # get AI response
+    ai_response = generate_response(agent.system_prompt, message)
+
+    # save AI response
+    ai_turn = CallTurn(
+        call_id=call.id,
+        role="assistant",
+        message=ai_response
+    )
+    db.add(ai_turn)
+
+    call.transcript = f"User: {message}\nAI: {ai_response}"
+    call.status = "completed"
+
+    db.commit()
+
+    return {
+        "response": ai_response,
+        "call_id": call.id
+    }
