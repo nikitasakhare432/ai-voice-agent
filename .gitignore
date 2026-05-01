@@ -1,17 +1,12 @@
 # virtual environment
-
-.env
 myenv/
 venv/
+.env
 
 # python cache
 __pycache__/
 *.pyc
 
-# env file
-.env
-
 # IDE
 .vscode/
-.idea/git add .gitignore
-git commit -m "remove virtual environment and clean repo structure"
+.idea/
