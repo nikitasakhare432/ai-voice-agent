@@ -1,5 +1,6 @@
 from sqlalchemy import Column, Integer, String, ForeignKey, Text
 from app.db.database import Base
+from sqlalchemy import DateTime
 
 class Call(Base):
     __tablename__ = "calls"
@@ -12,3 +13,7 @@ class Call(Base):
     transcript = Column(Text)
     summary = Column(Text)
     sentiment = Column(String)
+    scheduled_at = Column(DateTime, nullable=True)
+    started_at = Column(DateTime, nullable=True)
+    ended_at = Column(DateTime, nullable=True)
+    phone_number = Column(String, nullable=True)

@@ -1,4 +1,5 @@
-from fastapi import FastAPI
+from fastapi import FastAPI 
+
 from app.db.database import engine, Base
 
 # import models (IMPORTANT for table creation)
@@ -7,11 +8,19 @@ from app.models import users, workspace, agent, call, call_turn
 # import routes
 from app.routes import auth, agents, calls
 from app.routes import ws
+from app.services.scheduler import scheduler
+from app.services.scheduler import start_scheduler
+
 
 # create tables
 Base.metadata.create_all(bind=engine)
 
+
 app = FastAPI()
+
+@app.on_event("startup")
+def startup_event():
+    start_scheduler()
 
 @app.get("/")
 def root():
