@@ -5,7 +5,10 @@ import api from "../api/client";
 export default function Dashboard() {
     const [calls, setCalls] = useState([]);
     const [agents, setAgents] = useState([]);
+    const [user, setUser] = useState(null);
+    const [workspace, setWorkspace] = useState(null);
     const navigate = useNavigate();
+
 
     useEffect(() => {
         const token = localStorage.getItem("token");
@@ -18,10 +21,19 @@ export default function Dashboard() {
 
     const fetchData = async () => {
         try {
-            const callsRes = await api.get("/calls/");
-            const agentsRes = await api.get("/agents/");
+            const [callsRes, agentsRes, meRes] = await Promise.all([
+                api.get("/calls/"),
+                api.get("/agents/"),
+                api.get("/me/")
+            ]);
+
             setCalls(callsRes.data);
             setAgents(agentsRes.data);
+
+            // ✅ NEW
+            setUser(meRes.data.user);
+            setWorkspace(meRes.data.workspace);
+
         } catch (err) {
             console.error(err);
         }
@@ -66,9 +78,41 @@ export default function Dashboard() {
             {/* Sidebar */}
             <div className="w-64 bg-slate-900 text-slate-300 flex flex-col p-6 shadow-lg">
 
-                <h2 className="text-xl font-semibold text-white mb-8 tracking-tight">
-                    AI Platform
-                </h2>
+                <div className="mb-8 p-4 bg-slate-800/80 backdrop-blur-md rounded-2xl border border-slate-700 shadow-md">
+
+                    {/* Workspace */}
+                    <p className="text-[10px] uppercase tracking-wide text-slate-400 mb-1">
+                        Workspace
+                    </p>
+
+                    <h2 className="text-white font-semibold text-sm truncate">
+                        {workspace?.name || "Loading..."}
+                    </h2>
+
+                    {/* Divider */}
+                    <div className="my-3 border-t border-slate-700"></div>
+
+                    {/* User Info */}
+                    <div className="flex items-center gap-3">
+
+                        {/* Avatar */}
+                        <div className="w-9 h-9 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-sm font-semibold shadow">
+                            {user?.display_name?.[0]?.toUpperCase() || "U"}
+                        </div>
+
+                        {/* Text */}
+                        <div className="flex flex-col overflow-hidden">
+                            <span className="text-sm text-white font-medium truncate">
+                                {user?.display_name || "User"}
+                            </span>
+
+                            <span className="text-xs text-slate-400 truncate">
+                                {user?.email || "email"}
+                            </span>
+                        </div>
+
+                    </div>
+                </div>
 
                 <nav className="flex flex-col gap-2">
                     <SidebarItem active label="Dashboard" />

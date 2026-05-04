@@ -10,6 +10,7 @@ from app.models import users, workspace, agent, call, call_turn
 from app.routes import auth, agents, calls
 from app.routes import ws
 from app.services.scheduler import start_scheduler
+from app.routes import me
 
 
 # create tables
@@ -42,4 +43,5 @@ def root():
 app.include_router(auth.router, prefix="/auth")
 app.include_router(agents.router, prefix="/agents", tags=["Agents"])
 app.include_router(calls.router, prefix="/calls", tags=["Calls"])
+app.include_router(me.router, prefix="/me", tags=["Me"])
 app.include_router(ws.router, prefix="/ws")
