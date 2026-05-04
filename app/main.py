@@ -1,22 +1,34 @@
 from fastapi import FastAPI 
+from fastapi.middleware.cors import CORSMiddleware   # ✅ ADD THIS
 
 from app.db.database import engine, Base
 
-# import models (IMPORTANT for table creation)
+# import models
 from app.models import users, workspace, agent, call, call_turn
 
 # import routes
 from app.routes import auth, agents, calls
 from app.routes import ws
-from app.services.scheduler import scheduler
 from app.services.scheduler import start_scheduler
 
 
 # create tables
 Base.metadata.create_all(bind=engine)
 
-
 app = FastAPI()
+
+# ✅ ADD CORS MIDDLEWARE HERE
+origins = [
+    "http://localhost:5173",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,   # or ["*"] for testing
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 @app.on_event("startup")
 def startup_event():

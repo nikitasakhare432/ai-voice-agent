@@ -6,6 +6,7 @@ from app.models.workspace import Workspace
 from app.utils.security import hash_password, verify_password
 from app.utils.jwt import create_access_token
 from app.utils.deps import get_current_user
+from app.schemas.auth import LoginRequest, RegisterRequest
 
 router = APIRouter()
 
@@ -17,19 +18,19 @@ def get_db():
         db.close()
 
 @router.post("/register")
-def register(email: str, password: str, workspace_name: str, db: Session = Depends(get_db)):
-    existing = db.query(User).filter(User.email == email).first()
+def register(data: RegisterRequest, db: Session = Depends(get_db)):
+    existing = db.query(User).filter(User.email == data.email).first()
     if existing:
         raise HTTPException(status_code=400, detail="Email already exists")
 
-    workspace = Workspace(name=workspace_name)
+    workspace = Workspace(name=data.workspace_name)
     db.add(workspace)
     db.commit()
     db.refresh(workspace)
 
     user = User(
-        email=email,
-        password_hash=hash_password(password),
+        email=data.email,
+        password_hash=hash_password(data.password),
         workspace_id=workspace.id
     )
     db.add(user)
@@ -39,18 +40,11 @@ def register(email: str, password: str, workspace_name: str, db: Session = Depen
     return {"access_token": token}
 
 @router.post("/login")
-def login(email: str, password: str, db: Session = Depends(get_db)):
-    user = db.query(User).filter(User.email == email).first()
+def login(data: LoginRequest, db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.email == data.email).first()
 
-    if not user or not verify_password(password, user.password_hash):
+    if not user or not verify_password(data.password, user.password_hash):
         raise HTTPException(status_code=401, detail="Invalid credentials")
 
     token = create_access_token({"user_id": user.id})
     return {"access_token": token}
-@router.get("/me")
-def get_me(current_user = Depends(get_current_user)):
-    return {
-        "id": current_user.id,
-        "email": current_user.email,
-        "workspace_id": current_user.workspace_id
-    }
