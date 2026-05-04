@@ -1,13 +1,16 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
+from datetime import datetime
+
 from app.models.call import Call
 from app.utils.deps import get_db, get_current_user
-from app.schemas.call import CallCreate
-from datetime import datetime
+from app.schemas.call import CallCreate, CallSchedule, CallResponse
+
+
 
 router = APIRouter()
 
-@router.post("/")
+@router.post("/", response_model=CallResponse)
 def create_call(
     request: CallCreate,
     db: Session = Depends(get_db),
@@ -28,19 +31,17 @@ def create_call(
 
 @router.post("/schedule")
 def schedule_call(
-    agent_id: int,
-    phone_number: str,
-    scheduled_at: datetime,
+    request: CallSchedule,
     db: Session = Depends(get_db),
     current_user = Depends(get_current_user)
 ):
     call = Call(
-        agent_id=agent_id,
+        agent_id=request.agent_id,
         workspace_id=current_user.workspace_id,
         status="scheduled",
         direction="outbound",
-        phone_number=phone_number,
-        scheduled_at=scheduled_at
+        phone_number=request.phone_number,
+        scheduled_at=request.scheduled_at
     )
 
     db.add(call)
@@ -48,7 +49,7 @@ def schedule_call(
 
     return {"message": "Call scheduled"}
 
-@router.get("/")
+@router.get("/", response_model=list[CallResponse])
 def get_calls(
     db: Session = Depends(get_db),
     current_user = Depends(get_current_user)
