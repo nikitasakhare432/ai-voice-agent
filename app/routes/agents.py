@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from app.models.agent import Agent
 from app.models.call import Call
 from app.utils.deps import get_db, get_current_user
+from app.schemas.agent import AgentCreate, AgentResponse,AgentUpdate
 from app.services.ai_service import (
     generate_response,
     generate_summary,
@@ -11,20 +12,17 @@ from app.services.ai_service import (
 
 router = APIRouter()
 
-@router.post("/")
+@router.post("/", response_model=AgentResponse)
 def create_agent(
-    name: str,
-    system_prompt: str,
-    voice: str,
-    language: str,
+    payload: AgentCreate,
     db: Session = Depends(get_db),
     current_user = Depends(get_current_user)
 ):
     agent = Agent(
-        name=name,
-        system_prompt=system_prompt,
-        voice=voice,
-        language=language,
+        name=payload.name,
+        system_prompt=payload.system_prompt,
+        voice=payload.voice,
+        language=payload.language,
         workspace_id=current_user.workspace_id
     )
 
@@ -59,13 +57,10 @@ def get_agent(
         raise HTTPException(status_code=404, detail="Agent not found")
 
     return agent
-@router.put("/{agent_id}")
+@router.put("/{agent_id}", response_model=AgentResponse)
 def update_agent(
     agent_id: int,
-    name: str,
-    system_prompt: str,
-    voice: str,
-    language: str,
+    payload: AgentUpdate,
     db: Session = Depends(get_db),
     current_user = Depends(get_current_user)
 ):
@@ -77,14 +72,16 @@ def update_agent(
     if not agent:
         raise HTTPException(status_code=404, detail="Agent not found")
 
-    agent.name = name
-    agent.system_prompt = system_prompt
-    agent.voice = voice
-    agent.language = language
+    # ✅ update from JSON body
+    agent.name = payload.name
+    agent.system_prompt = payload.system_prompt
+    agent.voice = payload.voice
+    agent.language = payload.language
 
     db.commit()
+    db.refresh(agent)
 
-    return {"message": "Agent updated"}
+    return agent
 
 @router.delete("/{agent_id}")
 def delete_agent(
