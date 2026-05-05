@@ -4,6 +4,7 @@ import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
 import Agents from "./pages/Agents";
 import Chat from "./pages/Chat";
+import CallLogs from "./pages/CallLogs";
 
 export default function App() {
   return (
@@ -14,6 +15,7 @@ export default function App() {
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/agents" element={<Agents />} />
         <Route path="/chat/:agentId" element={<Chat />} />
+        <Route path="/calls" element={<CallLogs />} />
       </Routes>
     </BrowserRouter>
   );

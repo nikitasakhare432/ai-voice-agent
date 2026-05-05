@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../api/client";
+import WorkspaceCard from "../components/WorkspaceCard";
 
 export default function Agents() {
     const [agents, setAgents] = useState([]);
@@ -9,6 +10,8 @@ export default function Agents() {
     const [prompt, setPrompt] = useState("");
     const [voice, setVoice] = useState("");
     const [language, setLanguage] = useState("");
+    const [user, setUser] = useState(null);
+    const [workspace, setWorkspace] = useState(null);
 
     // EDIT STATES
     const [isEditOpen, setIsEditOpen] = useState(false);
@@ -26,8 +29,20 @@ export default function Agents() {
             navigate("/");
             return;
         }
+
         fetchAgents();
+        fetchUserData(); // 👈 add this
     }, []);
+
+    const fetchUserData = async () => {
+        try {
+            const res = await api.get("/me/");
+            setUser(res.data.user);
+            setWorkspace(res.data.workspace);
+        } catch (err) {
+            console.error(err);
+        }
+    };
 
     const fetchAgents = async () => {
         try {
@@ -101,6 +116,7 @@ export default function Agents() {
 
             {/* Sidebar */}
             <div className="w-64 bg-slate-900 text-slate-300 flex flex-col p-6 shadow-lg sticky top-0 h-screen">
+                <WorkspaceCard workspace={workspace} user={user} />
 
                 <h2 className="text-xl font-semibold text-white mb-8">
                     AI Platform
