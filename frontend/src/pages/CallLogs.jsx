@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../api/client";
+import WorkspaceCard from "../components/WorkspaceCard"; // ✅ added
 
 export default function CallLogs() {
     const [calls, setCalls] = useState([]);
@@ -8,6 +9,9 @@ export default function CallLogs() {
     const [statusFilter, setStatusFilter] = useState("");
     const [sentimentFilter, setSentimentFilter] = useState("");
     const [agents, setAgents] = useState([]);
+
+    const [user, setUser] = useState(null);           // ✅ added
+    const [workspace, setWorkspace] = useState(null); // ✅ added
 
     const navigate = useNavigate();
 
@@ -18,6 +22,7 @@ export default function CallLogs() {
             return;
         }
         fetchCalls();
+        fetchUserData(); // ✅ added
     }, []);
 
     const fetchCalls = async () => {
@@ -30,6 +35,17 @@ export default function CallLogs() {
             setCalls(callsRes.data);
             setAgents(agentsRes.data);
 
+        } catch (err) {
+            console.error(err);
+        }
+    };
+
+    // ✅ added
+    const fetchUserData = async () => {
+        try {
+            const res = await api.get("/me/");
+            setUser(res.data.user);
+            setWorkspace(res.data.workspace);
         } catch (err) {
             console.error(err);
         }
@@ -79,6 +95,9 @@ export default function CallLogs() {
 
             {/* Sidebar */}
             <div className="w-64 bg-slate-900 text-slate-300 flex flex-col p-6">
+
+                <WorkspaceCard workspace={workspace} user={user} /> {/* ✅ added */}
+
                 <h2 className="text-xl font-semibold text-white mb-8">
                     AI Platform
                 </h2>
@@ -153,7 +172,6 @@ export default function CallLogs() {
                         <tbody>
                             {filteredCalls.map((call) => (
                                 <>
-                                    {/* Row */}
                                     <tr
                                         key={call.id}
                                         onClick={() =>
@@ -190,7 +208,6 @@ export default function CallLogs() {
                                         </td>
                                     </tr>
 
-                                    {/* Expanded */}
                                     {expandedId === call.id && (
                                         <tr>
                                             <td colSpan="6" className="bg-slate-50 p-5">
@@ -228,7 +245,6 @@ export default function CallLogs() {
     );
 }
 
-// Sidebar Item
 function SidebarItem({ label, active, onClick }) {
     return (
         <div

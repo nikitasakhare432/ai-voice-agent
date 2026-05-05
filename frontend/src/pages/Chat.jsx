@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import WorkspaceCard from "../components/WorkspaceCard";
+import api from "../api/client"; // ✅ FIXED IMPORT
 
 export default function Chat() {
     const { agentId } = useParams();
@@ -8,15 +10,32 @@ export default function Chat() {
     const [messages, setMessages] = useState([]);
     const [input, setInput] = useState("");
 
+    const [user, setUser] = useState(null);
+    const [workspace, setWorkspace] = useState(null);
+
     const ws = useRef(null);
     const chatEndRef = useRef(null);
 
+    // 🔹 Fetch user + workspace
+    const fetchUserData = async () => {
+        try {
+            const res = await api.get("/me/");
+            setUser(res.data.user);
+            setWorkspace(res.data.workspace);
+        } catch (err) {
+            console.error(err);
+        }
+    };
+
+    // 🔹 Setup WebSocket + Auth Check
     useEffect(() => {
         const token = localStorage.getItem("token");
         if (!token) {
             navigate("/");
             return;
         }
+
+        fetchUserData();
 
         if (!agentId) return;
 
@@ -53,10 +72,12 @@ export default function Chat() {
         return () => ws.current?.close();
     }, [agentId]);
 
+    // 🔹 Auto-scroll
     useEffect(() => {
         chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }, [messages]);
 
+    // 🔹 Send message
     const sendMessage = () => {
         if (!input.trim()) return;
 
@@ -65,7 +86,7 @@ export default function Chat() {
             { role: "user", text: input },
         ]);
 
-        ws.current.send(input);
+        ws.current?.send(input);
         setInput("");
     };
 
@@ -74,6 +95,9 @@ export default function Chat() {
 
             {/* Sidebar */}
             <div className="w-64 h-full bg-slate-900 text-slate-300 flex flex-col p-6 shadow-lg">
+
+                <WorkspaceCard workspace={workspace} user={user} />
+
                 <h2 className="text-xl font-semibold text-white mb-8">
                     AI Platform
                 </h2>
@@ -100,7 +124,7 @@ export default function Chat() {
             <div className="flex-1 flex flex-col h-full">
 
                 {/* Header */}
-                <div className="bg-white border-b p-4">
+                <div className="bg-white border-b p-4 flex justify-between items-center">
                     <h1 className="text-lg font-semibold text-slate-800">
                         Chat with Agent {agentId}
                     </h1>
@@ -138,11 +162,10 @@ export default function Chat() {
                     <div ref={chatEndRef} />
                 </div>
 
-                {/* Input Bar */}
+                {/* Input */}
                 <div className="bg-white border-t px-6 py-4">
                     <div className="flex items-center gap-3 bg-slate-100 rounded-xl px-3 py-2 shadow-sm">
 
-                        {/* Input */}
                         <input
                             className="flex-1 bg-transparent outline-none text-sm text-slate-700 placeholder-slate-400"
                             value={input}
@@ -153,22 +176,22 @@ export default function Chat() {
                             }}
                         />
 
-                        {/* Send Button */}
                         <button
                             onClick={sendMessage}
-                            className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition flex items-center gap-1"
+                            className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition"
                         >
                             Send
                         </button>
 
                     </div>
                 </div>
+
             </div>
         </div>
     );
 }
 
-// Sidebar item
+// 🔹 Sidebar Item
 function SidebarItem({ label, onClick }) {
     return (
         <div
