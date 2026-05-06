@@ -21,8 +21,10 @@ export default function Chat() {
             return;
         }
 
+        const WS_URL = import.meta.env.VITE_WS_URL;
+
         ws.current = new WebSocket(
-            `ws://127.0.0.1:8000/ws/chat/${agentId}`
+            `${WS_URL}/ws/chat/${agentId}`
         );
 
         ws.current.onmessage = (event) => {

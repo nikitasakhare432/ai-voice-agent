@@ -24,7 +24,7 @@ import os
 
 origins = [
     "http://localhost:5173",
-    "https://your-frontend.vercel.app",  # 👉 replace later
+    "https://ai-voice-agent-weld-eight.vercel.app",  # 👉 replace later
 ]
 
 # allow all for now (safe for assignment)
