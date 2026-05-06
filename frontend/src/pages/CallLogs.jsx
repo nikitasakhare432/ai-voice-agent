@@ -78,9 +78,13 @@ export default function CallLogs() {
 
     const getDuration = (call) => {
         if (!call.started_at || !call.ended_at) return "-";
+
         const seconds = Math.floor(
             (new Date(call.ended_at) - new Date(call.started_at)) / 1000
         );
+
+        if (seconds < 1) return "1s";
+
         return `${seconds}s`;
     };
 

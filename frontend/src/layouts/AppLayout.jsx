@@ -65,6 +65,7 @@ export default function AppLayout() {
 
                     <SidebarItem label="Dashboard" onClick={() => navigate("/dashboard")} />
                     <SidebarItem label="Agents" onClick={() => navigate("/agents")} />
+                    <SidebarItem label="Scheduled Calls" onClick={() => navigate("/scheduled-calls")} />
                     <SidebarItem label="Call Logs" onClick={() => navigate("/calls")} />
                     <SidebarItem label="Analytics" onClick={() => navigate("/analytics")} />
 

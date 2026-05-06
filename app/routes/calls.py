@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from datetime import datetime
+from fastapi import APIRouter, Depends, HTTPException
 
 from app.models.call import Call
 from app.utils.deps import get_db, get_current_user
@@ -59,3 +60,18 @@ def get_calls(
     ).all()
 
     return calls
+
+@router.delete("/scheduled/{call_id}")
+def cancel_scheduled_call(call_id: int, db: Session = Depends(get_db)):
+    call = db.query(Call).filter(Call.id == call_id).first()
+
+    if not call:
+        raise HTTPException(status_code=404, detail="Call not found")
+
+    if call.status == "completed":
+        raise HTTPException(status_code=400, detail="Cannot cancel completed call")
+
+    call.status = "cancelled"
+    db.commit()
+
+    return {"message": "Call cancelled successfully"}

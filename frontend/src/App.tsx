@@ -7,6 +7,7 @@ import Chat from "./pages/Chat";
 import CallLogs from "./pages/CallLogs";
 import Analytics from "./pages/Analytics";
 import AppLayout from "./layouts/AppLayout";
+import ScheduledCalls from "./pages/ScheduledCalls";
 
 export default function App() {
   return (
@@ -24,6 +25,7 @@ export default function App() {
           <Route path="/chat/:agentId" element={<Chat />} />
           <Route path="/calls" element={<CallLogs />} />
           <Route path="/analytics" element={<Analytics />} />
+          <Route path="/scheduled-calls" element={<ScheduledCalls />} />
         </Route>
 
       </Routes>
