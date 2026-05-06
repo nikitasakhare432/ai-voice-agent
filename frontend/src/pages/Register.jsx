@@ -2,7 +2,8 @@ import { useState } from "react";
 import api from "../api/client";
 
 export default function Register() {
-    console.log("API:", import.meta.env.VITE_API_URL);
+    console.log("AXIOS BASE:", api.defaults.baseURL);
+
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [workspace, setWorkspace] = useState("");
