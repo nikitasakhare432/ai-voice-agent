@@ -5,17 +5,27 @@ import Dashboard from "./pages/Dashboard";
 import Agents from "./pages/Agents";
 import Chat from "./pages/Chat";
 import CallLogs from "./pages/CallLogs";
+import Analytics from "./pages/Analytics";
+import AppLayout from "./layouts/AppLayout";
 
 export default function App() {
   return (
     <BrowserRouter>
       <Routes>
+
+        {/* AUTH ROUTES (NO SIDEBAR) */}
         <Route path="/" element={<Login />} />
         <Route path="/register" element={<Register />} />
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/agents" element={<Agents />} />
-        <Route path="/chat/:agentId" element={<Chat />} />
-        <Route path="/calls" element={<CallLogs />} />
+
+        {/* APP ROUTES (WITH SIDEBAR LAYOUT) */}
+        <Route element={<AppLayout />}>
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/agents" element={<Agents />} />
+          <Route path="/chat/:agentId" element={<Chat />} />
+          <Route path="/calls" element={<CallLogs />} />
+          <Route path="/analytics" element={<Analytics />} />
+        </Route>
+
       </Routes>
     </BrowserRouter>
   );

@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import WorkspaceCard from "../components/WorkspaceCard";
-import api from "../api/client"; // ✅ FIXED IMPORT
+import api from "../api/client";
 
 export default function Chat() {
     const { agentId } = useParams();
@@ -9,35 +8,18 @@ export default function Chat() {
 
     const [messages, setMessages] = useState([]);
     const [input, setInput] = useState("");
-
-    const [user, setUser] = useState(null);
-    const [workspace, setWorkspace] = useState(null);
+    const [isThinking, setIsThinking] = useState(false);
+    const [agent, setAgent] = useState(null);
 
     const ws = useRef(null);
     const chatEndRef = useRef(null);
 
-    // 🔹 Fetch user + workspace
-    const fetchUserData = async () => {
-        try {
-            const res = await api.get("/me/");
-            setUser(res.data.user);
-            setWorkspace(res.data.workspace);
-        } catch (err) {
-            console.error(err);
-        }
-    };
-
-    // 🔹 Setup WebSocket + Auth Check
     useEffect(() => {
         const token = localStorage.getItem("token");
         if (!token) {
             navigate("/");
             return;
         }
-
-        fetchUserData();
-
-        if (!agentId) return;
 
         ws.current = new WebSocket(
             `ws://127.0.0.1:8000/ws/chat/${agentId}`
@@ -46,38 +28,49 @@ export default function Chat() {
         ws.current.onmessage = (event) => {
             const token = event.data;
 
-            setMessages((prev) => {
-                const newMessages = [...prev];
+            if (token === "[END]") {
+                setIsThinking(false);
+                return;
+            }
 
-                if (
-                    newMessages.length > 0 &&
-                    newMessages[newMessages.length - 1].role === "assistant"
-                ) {
-                    newMessages[newMessages.length - 1] = {
-                        ...newMessages[newMessages.length - 1],
-                        text:
-                            newMessages[newMessages.length - 1].text + token,
-                    };
+            setMessages((prev) => {
+                const updated = [...prev];
+                const last = updated[updated.length - 1];
+
+                if (last && last.role === "assistant") {
+                    last.text += token;
                 } else {
-                    newMessages.push({
+                    updated.push({
                         role: "assistant",
                         text: token,
                     });
                 }
 
-                return newMessages;
+                return [...updated];
             });
         };
 
         return () => ws.current?.close();
     }, [agentId]);
+    // 🔥 IMPORTANT (you missed this import)
 
-    // 🔹 Auto-scroll
+    useEffect(() => {
+        const loadAgent = async () => {
+            try {
+                const res = await api.get(`/agents/${agentId}`);
+                setAgent(res.data);
+            } catch (err) {
+                console.error(err);
+            }
+        };
+
+        loadAgent();
+    }, [agentId]);
+
     useEffect(() => {
         chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }, [messages]);
 
-    // 🔹 Send message
     const sendMessage = () => {
         if (!input.trim()) return;
 
@@ -86,119 +79,116 @@ export default function Chat() {
             { role: "user", text: input },
         ]);
 
+        setIsThinking(true);
         ws.current?.send(input);
         setInput("");
     };
 
     return (
-        <div className="flex h-screen bg-slate-100 overflow-hidden">
+        <div className="h-screen flex flex-col bg-gradient-to-b from-slate-50 to-slate-100">
 
-            {/* Sidebar */}
-            <div className="w-64 h-full bg-slate-900 text-slate-300 flex flex-col p-6 shadow-lg">
+            {/* HEADER */}
+            {/* HEADER */}
+            <div className="bg-white border-b px-6 py-4 flex justify-between items-center shadow-sm">
 
-                <WorkspaceCard workspace={workspace} user={user} />
-
-                <h2 className="text-xl font-semibold text-white mb-8">
-                    AI Platform
-                </h2>
-
-                <nav className="flex flex-col gap-2">
-                    <SidebarItem label="Dashboard" onClick={() => navigate("/dashboard")} />
-                    <SidebarItem label="Agents" onClick={() => navigate("/agents")} />
-                    <SidebarItem label="Call Logs" onClick={() => navigate("/calls")} />
-                    <SidebarItem label="Analytics" onClick={() => navigate("/analytics")} />
-                </nav>
-
-                <button
-                    onClick={() => {
-                        localStorage.removeItem("token");
-                        navigate("/");
-                    }}
-                    className="mt-auto bg-red-500 hover:bg-red-600 text-white p-2 rounded-md"
-                >
-                    Logout
-                </button>
-            </div>
-
-            {/* Chat Area */}
-            <div className="flex-1 flex flex-col h-full">
-
-                {/* Header */}
-                <div className="bg-white border-b p-4 flex justify-between items-center">
+                <div>
                     <h1 className="text-lg font-semibold text-slate-800">
-                        Chat with Agent {agentId}
+                        AI Voice Agent Chat
                     </h1>
 
-                    <button
-                        onClick={() => navigate("/agents")}
-                        className="text-sm text-indigo-600 hover:underline"
-                    >
-                        ← Back
-                    </button>
+                    <p className="text-xs text-slate-500">
+                        Agent: {agent ? agent.name : "Loading..."}
+                    </p>
                 </div>
 
-                {/* Messages */}
-                <div className="flex-1 overflow-y-auto p-6 space-y-4">
-
-                    {messages.map((msg, i) => (
-                        <div
-                            key={i}
-                            className={`flex ${msg.role === "user"
-                                ? "justify-end"
-                                : "justify-start"
-                                }`}
-                        >
-                            <div
-                                className={`max-w-md px-4 py-2 rounded-xl text-sm shadow ${msg.role === "user"
-                                    ? "bg-indigo-600 text-white"
-                                    : "bg-white border text-slate-700"
-                                    }`}
-                            >
-                                {msg.text}
-                            </div>
-                        </div>
-                    ))}
-
-                    <div ref={chatEndRef} />
-                </div>
-
-                {/* Input */}
-                <div className="bg-white border-t px-6 py-4">
-                    <div className="flex items-center gap-3 bg-slate-100 rounded-xl px-3 py-2 shadow-sm">
-
-                        <input
-                            className="flex-1 bg-transparent outline-none text-sm text-slate-700 placeholder-slate-400"
-                            value={input}
-                            onChange={(e) => setInput(e.target.value)}
-                            placeholder="Type your message..."
-                            onKeyDown={(e) => {
-                                if (e.key === "Enter") sendMessage();
-                            }}
-                        />
-
-                        <button
-                            onClick={sendMessage}
-                            className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition"
-                        >
-                            Send
-                        </button>
-
-                    </div>
-                </div>
+                <button
+                    onClick={() => navigate("/agents")}
+                    className="text-sm text-indigo-600 hover:text-indigo-800 font-medium"
+                >
+                    ← Back to Agents
+                </button>
 
             </div>
-        </div>
-    );
-}
 
-// 🔹 Sidebar Item
-function SidebarItem({ label, onClick }) {
-    return (
-        <div
-            onClick={onClick}
-            className="px-4 py-2 rounded-md cursor-pointer text-sm font-medium hover:bg-slate-800 hover:text-white transition"
-        >
-            {label}
+            {/* CHAT AREA */}
+            <div className="flex-1 overflow-y-auto px-6 py-6 space-y-5">
+
+                {messages.length === 0 && (
+                    <div className="text-center text-slate-400 mt-10">
+                        Start chatting with your AI agent
+                    </div>
+                )}
+
+                {messages.map((msg, i) => (
+                    <div
+                        key={i}
+                        className={`flex items-end gap-2 ${msg.role === "user"
+                            ? "justify-end"
+                            : "justify-start"
+                            }`}
+                    >
+                        {/* AI Avatar */}
+                        {msg.role === "assistant" && (
+                            <div className="w-8 h-8 rounded-full bg-indigo-500 text-white flex items-center justify-center text-xs">
+                                AI
+                            </div>
+                        )}
+
+                        <div
+                            className={`max-w-[65%] px-4 py-3 rounded-2xl text-sm leading-relaxed shadow-sm transition-all ${msg.role === "user"
+                                ? "bg-indigo-600 text-white rounded-br-sm"
+                                : "bg-white border text-slate-700 rounded-bl-sm"
+                                }`}
+                        >
+                            {msg.text}
+                        </div>
+
+                        {/* User Avatar */}
+                        {msg.role === "user" && (
+                            <div className="w-8 h-8 rounded-full bg-slate-800 text-white flex items-center justify-center text-xs">
+                                U
+                            </div>
+                        )}
+                    </div>
+                ))}
+
+                {/* AI typing indicator */}
+                {isThinking && (
+                    <div className="flex items-center gap-2 text-slate-500 text-sm">
+                        <div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce"></div>
+                        <div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce delay-150"></div>
+                        <div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce delay-300"></div>
+                        AI is responding...
+                    </div>
+                )}
+
+                <div ref={chatEndRef} />
+            </div>
+
+            {/* INPUT */}
+            <div className="bg-white border-t px-6 py-4 shadow-lg">
+                <div className="flex items-center gap-3">
+
+                    <input
+                        className="flex-1 bg-slate-100 px-4 py-3 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-400 transition"
+                        value={input}
+                        onChange={(e) => setInput(e.target.value)}
+                        placeholder="Type your message..."
+                        onKeyDown={(e) => {
+                            if (e.key === "Enter") sendMessage();
+                        }}
+                    />
+
+                    <button
+                        onClick={sendMessage}
+                        className="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-3 rounded-xl text-sm font-medium transition"
+                    >
+                        Send
+                    </button>
+
+                </div>
+            </div>
+
         </div>
     );
 }

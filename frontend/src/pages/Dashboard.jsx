@@ -1,15 +1,16 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../api/client";
-import WorkspaceCard from "../components/WorkspaceCard";
+import WorkspaceCard from "../components/WorkspaceCard"; // ✅ added
 
 export default function Dashboard() {
     const [calls, setCalls] = useState([]);
     const [agents, setAgents] = useState([]);
-    const [user, setUser] = useState(null);
-    const [workspace, setWorkspace] = useState(null);
-    const navigate = useNavigate();
 
+    const [user, setUser] = useState(null);           // ✅ added
+    const [workspace, setWorkspace] = useState(null); // ✅ added
+
+    const navigate = useNavigate();
 
     useEffect(() => {
         const token = localStorage.getItem("token");
@@ -18,23 +19,30 @@ export default function Dashboard() {
             return;
         }
         fetchData();
+        fetchUserData(); // ✅ added
     }, []);
 
     const fetchData = async () => {
         try {
-            const [callsRes, agentsRes, meRes] = await Promise.all([
+            const [callsRes, agentsRes] = await Promise.all([
                 api.get("/calls/"),
-                api.get("/agents/"),
-                api.get("/me/")
+                api.get("/agents/")
             ]);
 
             setCalls(callsRes.data);
             setAgents(agentsRes.data);
 
-            // ✅ NEW
-            setUser(meRes.data.user);
-            setWorkspace(meRes.data.workspace);
+        } catch (err) {
+            console.error(err);
+        }
+    };
 
+    // ✅ added
+    const fetchUserData = async () => {
+        try {
+            const res = await api.get("/me/");
+            setUser(res.data.user);
+            setWorkspace(res.data.workspace);
         } catch (err) {
             console.error(err);
         }
@@ -57,12 +65,10 @@ export default function Dashboard() {
         ).toFixed(1)
         : 0;
 
-    // 🧠 Agent Map
     const agentMap = Object.fromEntries(
         agents.map(a => [a.id, a.name])
     );
 
-    // 🔝 Top Agents
     const agentCallCount = {};
     calls.forEach(c => {
         agentCallCount[c.agent_id] =
@@ -74,154 +80,120 @@ export default function Dashboard() {
         .slice(0, 3);
 
     return (
-        <div className="flex min-h-screen bg-slate-100 text-slate-800">
+        <div className="space-y-6">
 
-            {/* Sidebar */}
-            <div className="w-64 bg-slate-900 text-slate-300 flex flex-col p-6 shadow-lg">
+            {/* ✅ Workspace Card added */}
 
-                <WorkspaceCard workspace={workspace} user={user} />
 
-                <nav className="flex flex-col gap-2">
-                    <SidebarItem active label="Dashboard" />
-                    <SidebarItem label="Agents" onClick={() => navigate("/agents")} />
-                    <SidebarItem label="Call Logs" onClick={() => navigate("/calls")} />
-                    <SidebarItem label="Analytics" onClick={() => navigate("/analytics")} />
-                </nav>
+            <h1 className="text-2xl font-semibold text-slate-900">
+                Dashboard
+            </h1>
 
-                <button
-                    onClick={() => {
-                        localStorage.removeItem("token");
-                        navigate("/");
-                    }}
-                    className="mt-auto bg-red-500 hover:bg-red-600 text-white p-2 rounded-md transition"
-                >
-                    Logout
-                </button>
+            {/* STATS */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+
+                <Card title="Total Calls" value={totalCalls} />
+                <Card title="Total Agents" value={totalAgents} />
+                <Card title="Success Rate" value={`${successRate}%`} highlight />
+                <Card title="Avg Duration" value={`${avgDuration}s`} />
+
             </div>
 
-            {/* Main Content */}
-            <div className="flex-1 p-6">
+            {/* TOP AGENTS */}
+            <div className="bg-white p-6 rounded-2xl border shadow-md">
 
-                <h1 className="text-2xl font-semibold mb-6 text-slate-900">
-                    Dashboard
-                </h1>
+                <h2 className="text-lg font-semibold text-slate-900 mb-4">
+                    Top Agents
+                </h2>
 
-                {/* Stats */}
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-                    <Card title="Total Calls" value={totalCalls} />
-                    <Card title="Total Agents" value={totalAgents} />
-                    <Card title="Success Rate" value={`${successRate}%`} highlight />
-                    <Card title="Avg Duration" value={`${avgDuration}s`} />
-                </div>
+                {topAgents.map(([id, count]) => (
+                    <div
+                        key={id}
+                        className="flex justify-between items-center py-2 text-sm"
+                    >
+                        <span className="font-medium text-slate-800">
+                            {agentMap[id] || "Unknown"}
+                        </span>
 
-                {/* Top Agents */}
-                <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm mb-6">
-                    <h2 className="text-lg font-semibold text-slate-900 mb-3">
-                        Top Agents
-                    </h2>
+                        <span className="bg-slate-100 px-3 py-1 rounded-full text-slate-600">
+                            {count} calls
+                        </span>
+                    </div>
+                ))}
+            </div>
 
-                    {topAgents.map(([id, count]) => (
-                        <div
-                            key={id}
-                            className="flex justify-between items-center py-1 text-sm text-slate-600"
-                        >
-                            <span className="font-medium text-slate-800">
-                                {agentMap[id] || "Unknown"}
-                            </span>
+            {/* RECENT CALLS */}
+            <div className="bg-white p-6 rounded-2xl border shadow-md">
 
-                            <span className="bg-slate-100 px-2 py-0.5 rounded">
-                                {count} calls
-                            </span>
-                        </div>
-                    ))}
-                </div>
+                <h2 className="text-lg font-semibold text-slate-900 mb-4">
+                    Recent Calls
+                </h2>
 
-                {/* Recent Calls */}
-                <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-                    <h2 className="text-lg font-semibold text-slate-900 mb-4">
-                        Recent Calls
-                    </h2>
+                <table className="w-full text-sm">
 
-                    <table className="w-full text-sm">
-                        <thead>
-                            <tr className="bg-slate-50 text-slate-500 uppercase text-xs tracking-wide">
-                                <th className="p-3 text-left">ID</th>
-                                <th className="p-3 text-left">Agent</th>
-                                <th className="p-3 text-left">Direction</th>
-                                <th className="p-3 text-left">Status</th>
-                                <th className="p-3 text-left">Sentiment</th>
+                    <thead>
+                        <tr className="bg-slate-50 text-slate-500 text-xs uppercase">
+                            <th className="p-3 text-left">ID</th>
+                            <th className="p-3 text-left">Agent</th>
+                            <th className="p-3 text-left">Direction</th>
+                            <th className="p-3 text-left">Status</th>
+                            <th className="p-3 text-left">Sentiment</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {calls.slice(0, 5).map(call => (
+                            <tr
+                                key={call.id}
+                                className="border-t hover:bg-slate-50 transition"
+                            >
+                                <td className="p-3">{call.id}</td>
+
+                                <td className="p-3">
+                                    {agentMap[call.agent_id] || "Unknown"}
+                                </td>
+
+                                <td className="p-3 capitalize">
+                                    {call.direction}
+                                </td>
+
+                                <td className="p-3">
+                                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${call.status === "completed"
+                                        ? "bg-green-100 text-green-600"
+                                        : call.status === "scheduled"
+                                            ? "bg-yellow-100 text-yellow-600"
+                                            : "bg-red-100 text-red-600"
+                                        }`}>
+                                        {call.status}
+                                    </span>
+                                </td>
+
+                                <td className="p-3">
+                                    <span className={`text-xs font-medium ${call.sentiment === "positive"
+                                        ? "text-green-600"
+                                        : call.sentiment === "negative"
+                                            ? "text-red-600"
+                                            : "text-slate-500"
+                                        }`}>
+                                        {call.sentiment || "-"}
+                                    </span>
+                                </td>
                             </tr>
-                        </thead>
+                        ))}
+                    </tbody>
 
-                        <tbody>
-                            {calls.slice(0, 5).map(call => (
-                                <tr
-                                    key={call.id}
-                                    className="border-t hover:bg-slate-50 transition-all duration-150"
-                                >
-                                    <td className="p-3">{call.id}</td>
-
-                                    <td className="p-3">
-                                        {agentMap[call.agent_id] || "Unknown"}
-                                    </td>
-
-                                    <td className="p-3 capitalize">
-                                        {call.direction}
-                                    </td>
-
-                                    <td className="p-3">
-                                        <span className={`px-3 py-1 rounded-full text-xs font-medium ${call.status === "completed"
-                                            ? "bg-green-100 text-green-600"
-                                            : call.status === "scheduled"
-                                                ? "bg-yellow-100 text-yellow-600"
-                                                : "bg-red-100 text-red-600"
-                                            }`}>
-                                            {call.status}
-                                        </span>
-                                    </td>
-
-                                    <td className="p-3">
-                                        <span className={`text-xs font-medium ${call.sentiment === "positive"
-                                            ? "text-green-600"
-                                            : call.sentiment === "negative"
-                                                ? "text-red-600"
-                                                : "text-slate-500"
-                                            }`}>
-                                            {call.sentiment || "-"}
-                                        </span>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
-
+                </table>
             </div>
+
         </div>
     );
 }
 
-// 🔹 Sidebar Item
-function SidebarItem({ label, active, onClick }) {
-    return (
-        <div
-            onClick={onClick}
-            className={`px-4 py-2 rounded-md cursor-pointer text-sm font-medium transition-all duration-200 ${active
-                ? "bg-indigo-600 text-white shadow"
-                : "hover:bg-slate-800 hover:text-white"
-                }`}
-        >
-            {label}
-        </div>
-    );
-}
-
-// 🔹 Card Component
+/* Card */
 function Card({ title, value, highlight }) {
     return (
-        <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-all duration-200">
+        <div className="bg-white p-5 rounded-2xl border shadow-md hover:shadow-xl transition">
             <p className="text-slate-500 text-sm">{title}</p>
-
             <h2 className={`text-2xl font-semibold mt-1 ${highlight ? "text-indigo-600" : "text-slate-900"
                 }`}>
                 {value}
