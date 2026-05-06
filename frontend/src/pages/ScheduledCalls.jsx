@@ -44,7 +44,7 @@ export default function ScheduledCalls() {
         return () => clearInterval(interval);
     }, []);
 
-    // ---------------- AGENT MAP (OPTIMIZED) ----------------
+    // ---------------- AGENT MAP ----------------
     const agentMap = useMemo(() => {
         return Object.fromEntries(
             agents.map(a => [a.id, a.name])
@@ -81,16 +81,6 @@ export default function ScheduledCalls() {
         }
     };
 
-    // ---------------- CANCEL CALL ----------------
-    const cancelCall = async (id) => {
-        try {
-            await api.delete(`/calls/scheduled/${id}`);
-            fetchCalls();
-        } catch (err) {
-            console.error("Cancel failed:", err);
-        }
-    };
-
     // ---------------- TIME LEFT ----------------
     const timeLeft = (scheduledAt) => {
         const diff = new Date(scheduledAt) - new Date();
@@ -120,7 +110,6 @@ export default function ScheduledCalls() {
     return (
         <div className="space-y-6">
 
-            {/* HEADER */}
             <h1 className="text-2xl font-semibold text-slate-800">
                 Scheduled Calls
             </h1>
@@ -193,7 +182,6 @@ export default function ScheduledCalls() {
                 ) : (
                     <table className="w-full text-sm">
 
-                        {/* HEADER */}
                         <thead className="text-left text-slate-500 border-b">
                             <tr>
                                 <th className="p-3">Agent</th>
@@ -201,31 +189,25 @@ export default function ScheduledCalls() {
                                 <th className="p-3">Scheduled Time</th>
                                 <th className="p-3">Time Left</th>
                                 <th className="p-3">Status</th>
-                                <th className="p-3">Action</th>
                             </tr>
                         </thead>
 
-                        {/* BODY */}
                         <tbody>
                             {calls.map((c) => (
                                 <tr key={c.id} className="border-t hover:bg-slate-50">
 
-                                    {/* AGENT */}
                                     <td className="p-3 font-medium">
                                         {agentMap[c.agent_id] || "Unknown"}
                                     </td>
 
-                                    {/* PHONE */}
                                     <td className="p-3">
                                         {c.phone_number}
                                     </td>
 
-                                    {/* SCHEDULED TIME */}
                                     <td className="p-3 text-slate-700">
                                         {formatDate(c.scheduled_at)}
                                     </td>
 
-                                    {/* TIME LEFT */}
                                     <td className="p-3 text-blue-600">
                                         {c.status === "scheduled"
                                             ? timeLeft(c.scheduled_at)
@@ -235,7 +217,6 @@ export default function ScheduledCalls() {
                                         }
                                     </td>
 
-                                    {/* STATUS */}
                                     <td className="p-3">
                                         <span
                                             className={`text-xs px-3 py-1 rounded-full ${c.status === "completed"
@@ -247,16 +228,6 @@ export default function ScheduledCalls() {
                                         >
                                             {c.status}
                                         </span>
-                                    </td>
-
-                                    {/* ACTION */}
-                                    <td className="p-3">
-                                        <button
-                                            onClick={() => cancelCall(c.id)}
-                                            className="text-red-500 hover:underline"
-                                        >
-                                            Cancel
-                                        </button>
                                     </td>
 
                                 </tr>
