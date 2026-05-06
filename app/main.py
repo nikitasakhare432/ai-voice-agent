@@ -20,9 +20,16 @@ Base.metadata.create_all(bind=engine)
 app = FastAPI()
 
 # ✅ ADD CORS MIDDLEWARE HERE
+import os
+
 origins = [
     "http://localhost:5173",
+    "https://your-frontend.vercel.app",  # 👉 replace later
 ]
+
+# allow all for now (safe for assignment)
+if os.getenv("ENV") == "production":
+    origins = ["*"]
 
 app.add_middleware(
     CORSMiddleware,
