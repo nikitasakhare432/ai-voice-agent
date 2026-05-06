@@ -1,9 +1,18 @@
+import os
 from groq import Groq
-from app.utils.config import GROQ_API_KEY
 
-client = Groq(api_key=GROQ_API_KEY)
+def get_client():
+    api_key = os.getenv("GROQ_API_KEY")
+
+    if not api_key:
+        raise ValueError("GROQ_API_KEY not set")
+
+    return Groq(api_key=api_key)
+
 
 def generate_response(system_prompt: str, user_message: str):
+    client = get_client()
+
     completion = client.chat.completions.create(
         model="llama-3.3-70b-versatile",
         messages=[
@@ -14,18 +23,15 @@ def generate_response(system_prompt: str, user_message: str):
 
     return completion.choices[0].message.content
 
+
 def generate_summary(transcript: str):
+    client = get_client()
+
     completion = client.chat.completions.create(
         model="llama-3.3-70b-versatile",
         messages=[
-            {
-                "role": "system",
-                "content": "Summarize the following conversation in one clear sentence."
-            },
-            {
-                "role": "user",
-                "content": transcript
-            }
+            {"role": "system", "content": "Summarize the following conversation in one clear sentence."},
+            {"role": "user", "content": transcript}
         ]
     )
 
@@ -33,21 +39,16 @@ def generate_summary(transcript: str):
 
 
 def classify_sentiment(transcript: str):
+    client = get_client()
+
     completion = client.chat.completions.create(
         model="llama-3.3-70b-versatile",
         messages=[
             {
                 "role": "system",
-                "content": (
-                    "Classify the sentiment of this conversation as one of: "
-                    "positive, neutral, negative. "
-                    "Return ONLY one word."
-                )
+                "content": "Classify the sentiment as: positive, neutral, or negative. Return ONLY one word."
             },
-            {
-                "role": "user",
-                "content": transcript
-            }
+            {"role": "user", "content": transcript}
         ]
     )
 
