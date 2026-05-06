@@ -1,13 +1,13 @@
 import os
 from groq import Groq
 
-# ✅ Load API key safely
+print("ENV CHECK:", os.getenv("GROQ_API_KEY"))
+
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 
 if not GROQ_API_KEY:
     raise ValueError("❌ GROQ_API_KEY is not set in environment variables")
 
-# ✅ Initialize client
 client = Groq(api_key=GROQ_API_KEY)
 
 
