@@ -1,4 +1,3 @@
-from apscheduler.schedulers.background import BackgroundScheduler
 from datetime import datetime
 from app.db.database import SessionLocal
 from app.models.call import Call
@@ -9,69 +8,79 @@ from app.services.ai_service import (
     classify_sentiment
 )
 
-scheduler = BackgroundScheduler()
+import time
+import threading
 
-def simulate_call():
-    db = SessionLocal()
-    try:
-        now = datetime.utcnow()
-        print("Scheduler running at:", now)
+is_running = False
 
-        # STEP 1: get eligible calls
-        calls = db.query(Call).filter(
-            Call.status == "scheduled",
-            Call.scheduled_at <= now
-        ).all()
 
-        for call in calls:
+def simulate_call(call, db):
+    agent = db.query(Agent).filter(Agent.id == call.agent_id).first()
+    if not agent:
+        return
 
-            # STEP 2: double safety check
-            if call.status != "scheduled":
-                continue
+    start_time = datetime.utcnow()
 
-            agent = db.query(Agent).filter(Agent.id == call.agent_id).first()
-            if not agent:
-                continue
+    conversation = []
+    user_msg = "Hello"
 
-            # STEP 3: mark immediately so it won't run twice
-            call.status = "initiated"
+    for _ in range(3):
+        ai_reply = generate_response(agent.system_prompt, user_msg)
+
+        conversation.append(f"User: {user_msg}")
+        conversation.append(f"AI: {ai_reply}")
+
+        user_msg = "Can you explain more?"
+
+    transcript = "\n".join(conversation)
+    end_time = datetime.utcnow()
+
+    call.transcript = transcript
+    call.summary = generate_summary(transcript)
+    call.sentiment = classify_sentiment(transcript)
+
+    call.started_at = start_time
+    call.ended_at = end_time
+    call.status = "completed"
+
+
+def scheduler_loop():
+    global is_running
+    is_running = True
+
+    print("🚀 Scheduler started...")
+
+    while True:
+        db = SessionLocal()
+        try:
+            now = datetime.utcnow()
+
+            print("🔍 Checking scheduled calls:", now)
+
+            calls = db.query(Call).filter(
+                Call.status == "scheduled",
+                Call.scheduled_at <= now
+            ).all()
+
+            for call in calls:
+                print(f"📞 Running call ID: {call.id}")
+
+                call.status = "processing"
+                db.commit()
+
+                simulate_call(call, db)
+
             db.commit()
 
-            start_time = datetime.utcnow()
+        except Exception as e:
+            print("❌ Scheduler error:", e)
 
-            conversation = []
-            user_msg = "Hello"
+        finally:
+            db.close()
 
-            for _ in range(3):
-                ai_reply = generate_response(agent.system_prompt, user_msg)
-                conversation.append(f"User: {user_msg}")
-                conversation.append(f"AI: {ai_reply}")
-                user_msg = "Can you tell me more?"
-
-            transcript = "\n".join(conversation)
-            end_time = datetime.utcnow()
-
-            call.transcript = transcript
-            call.summary = generate_summary(transcript)
-            call.sentiment = classify_sentiment(transcript)
-
-            call.started_at = start_time
-            call.ended_at = end_time
-            call.status = "completed"
-
-        db.commit()
-
-    finally:
-        db.close()
+        time.sleep(15)  # check every 15 sec
 
 
 def start_scheduler():
-    if not scheduler.running:
-        scheduler.add_job(
-            simulate_call,
-            "interval",
-            seconds=15,
-            max_instances=1,
-            coalesce=True
-        )
-        scheduler.start()
+    thread = threading.Thread(target=scheduler_loop, daemon=True)
+    thread.start()

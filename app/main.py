@@ -12,6 +12,7 @@ from app.routes import ws
 from app.services.scheduler import start_scheduler
 from app.routes import me
 from app.routes import analytics
+import threading
 
 
 # create tables
@@ -41,7 +42,10 @@ app.add_middleware(
 
 @app.on_event("startup")
 def startup_event():
-    start_scheduler()
+    print("🔥 APP STARTED")
+
+    thread = threading.Thread(target=start_scheduler, daemon=True)
+    thread.start()
 
 @app.get("/")
 def root():
