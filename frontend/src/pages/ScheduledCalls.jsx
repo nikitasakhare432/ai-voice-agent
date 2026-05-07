@@ -61,7 +61,7 @@ export default function ScheduledCalls() {
             await api.post("/calls/schedule", {
                 agent_id: Number(form.agent_id),
                 phone_number: form.phone_number,
-                scheduled_at: form.scheduled_at,
+                scheduled_at: new Date(form.scheduled_at).toISOString(),
             });
 
             setForm({
@@ -173,44 +173,58 @@ export default function ScheduledCalls() {
                         </thead>
 
                         <tbody>
-                            {calls.map(c => (
-                                <tr key={c.id} className="border-t">
 
-                                    <td className="p-2">
-                                        {agentMap[c.agent_id] || "Unknown"}
-                                    </td>
+                            {calls
+                                .filter(
+                                    c =>
+                                        c.status === "scheduled" ||
+                                        c.status === "processing"
+                                )
+                                .map(c => (
 
-                                    <td className="p-2">
-                                        {c.phone_number}
-                                    </td>
+                                    <tr key={c.id} className="border-t">
 
-                                    <td className="p-2">
-                                        {formatDate(c.scheduled_at)}
-                                    </td>
+                                        <td className="p-2">
+                                            {agentMap[c.agent_id] || "Unknown"}
+                                        </td>
 
-                                    <td className="p-2 text-blue-600">
-                                        {c.status === "scheduled"
-                                            ? timeLeft(c.scheduled_at)
-                                            : c.status === "processing"
-                                                ? "Running AI..."
-                                                : "Done"
-                                        }
-                                    </td>
+                                        <td className="p-2">
+                                            {c.phone_number || "-"}
+                                        </td>
 
-                                    <td className="p-2">
-                                        <span className={
-                                            c.status === "completed"
-                                                ? "text-green-600"
-                                                : c.status === "processing"
+                                        <td className="p-2">
+                                            {formatDate(c.scheduled_at)}
+                                        </td>
+
+                                        <td className="p-2 text-blue-600">
+
+                                            {c.status === "scheduled"
+                                                ? timeLeft(c.scheduled_at)
+                                                : "Running AI..."
+                                            }
+
+                                        </td>
+
+                                        <td className="p-2">
+
+                                            <span className={
+                                                c.status === "processing"
                                                     ? "text-blue-600"
                                                     : "text-yellow-600"
-                                        }>
-                                            {c.status}
-                                        </span>
-                                    </td>
+                                            }>
 
-                                </tr>
-                            ))}
+                                                {c.status === "processing"
+                                                    ? "processing"
+                                                    : "scheduled"}
+
+                                            </span>
+
+                                        </td>
+
+                                    </tr>
+
+                                ))}
+
                         </tbody>
 
                     </table>
