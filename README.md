@@ -55,6 +55,7 @@ Backend: https://web-production-2c269.up.railway.app/
 ---
 
 ## Automatic AI Features
+
 After every conversation:
 - AI-generated summary
 - AI sentiment classification
@@ -75,6 +76,7 @@ After every conversation:
 ---
 
 ## Scheduled Outbound Call Simulation
+
 Users can:
 - Schedule AI outbound calls
 - Set phone number and future time
@@ -131,6 +133,7 @@ Charts built using Recharts with real database data.
 - Vercel (Frontend)
 
 ---
+
 # Project Structure
 
 ```bash
@@ -163,6 +166,9 @@ AI-Voice-Agent-Platform/
 ├── screenshots/
 ├── README.md
 └── .env
+```
+
+---
 
 # API Endpoints
 
@@ -199,21 +205,19 @@ AI-Voice-Agent-Platform/
 
 ## Backend (.env)
 
+```env
 DATABASE_URL=sqlite:///./test.db
-
 SECRET_KEY=your_secret_key
-
 ALGORITHM=HS256
-
 ACCESS_TOKEN_EXPIRE_MINUTES=1440
-
 GROQ_API_KEY=your_groq_api_key
-
----
+```
 
 ## Frontend (.env)
 
+```env
 VITE_API_URL=https://your-backend-url.railway.app
+```
 
 ---
 
@@ -231,9 +235,42 @@ pip install -r requirements.txt
 alembic upgrade head
 
 uvicorn main:app --reload
+```
 
-# Screenshots
-<img width="1896" height="801" alt="Screenshot 2026-05-07 152951" src="https://github.com/user-attachments/assets/70b09c45-0d22-44c2-8368-c4d93053fdf7" />
+## Frontend Setup
 
+```bash
+cd frontend
 
+npm install
 
+npm run dev
+```
+
+---
+
+# Scheduler
+
+The application uses APScheduler for outbound call simulation.
+
+Features:
+- Runs independently
+- Checks scheduled calls every 60 seconds
+- Executes asynchronous AI conversations
+- Prevents crashes using error handling
+
+---
+
+# Deployment
+
+## Backend
+Deployed on Railway.
+
+## Frontend
+Deployed on Vercel.
+
+---
+
+# Author
+
+Nikita Sakhare
