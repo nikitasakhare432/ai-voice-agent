@@ -233,46 +233,7 @@ alembic upgrade head
 uvicorn main:app --reload
 
 # Screenshots
-
-# Screenshots
-
-## Register
-
-<img width="1896" height="801" alt="Screenshot 2026-05-07 152951" src="https://github.com/user-attachments/assets/c17ab9a6-d754-47f7-b5cf-ef2c4f83a02a" />
+<img width="1896" height="801" alt="Screenshot 2026-05-07 152951" src="https://github.com/user-attachments/assets/70b09c45-0d22-44c2-8368-c4d93053fdf7" />
 
 
----
-
-## Agent Management
-
-\<img width="1905" height="799" alt="Screenshot 2026-05-07 153022" src="https://github.com/user-attachments/assets/987e45c8-9a00-4bd6-8323-f103f10e76b2" />
-
-
----
-
-## AI Test Chat
-
-<img width="1890" height="764" alt="Screenshot 2026-05-07 153103" src="https://github.com/user-attachments/assets/fff823d2-1d50-40c3-88c2-ec0e0de84031" />
-
-
----
-
-## Call Logs
-
-
-<img width="1895" height="775" alt="Screenshot 2026-05-07 153405" src="https://github.com/user-attachments/assets/6b4febb3-8763-40ea-91ac-e75a22aecb87" />
-
-
----
-
-## Scheduled Calls
-
-<img width="1889" height="761" alt="Screenshot 2026-05-07 153440" src="https://github.com/user-attachments/assets/7fd1ba6c-8d05-4091-a05a-eed2e56d4522" />
-
-
----
-
-## Analytics Dashboard
-
-<img width="1911" height="779" alt="Screenshot 2026-05-07 153459" src="https://github.com/user-attachments/assets/e42a4fe3-2ad2-45af-9d3c-50b73ca9ce7b" />
 
