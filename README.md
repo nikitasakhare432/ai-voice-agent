@@ -131,30 +131,38 @@ Charts built using Recharts with real database data.
 - Vercel (Frontend)
 
 ---
-
 # Project Structure
 
-backend/
+```bash
+AI-Voice-Agent-Platform/
 │
-├── routes/
-├── models/
-├── schemas/
-├── services/
-├── database/
-├── utils/
-├── scheduler/
-└── main.py
-
-frontend/
+├── backend/
+│   ├── routes/
+│   ├── models/
+│   ├── schemas/
+│   ├── services/
+│   ├── database/
+│   ├── utils/
+│   ├── scheduler/
+│   ├── main.py
+│   └── requirements.txt
 │
-├── src/
-│   ├── pages/
-│   ├── components/
-│   ├── layouts/
-│   ├── api/
-│   └── routes/
-
----
+├── frontend/
+│   ├── src/
+│   │   ├── pages/
+│   │   ├── components/
+│   │   ├── layouts/
+│   │   ├── api/
+│   │   ├── routes/
+│   │   └── App.jsx
+│   │
+│   ├── public/
+│   ├── package.json
+│   └── vite.config.js
+│
+├── screenshots/
+├── README.md
+└── .env
 
 # API Endpoints
 
@@ -226,11 +234,12 @@ uvicorn main:app --reload
 
 # Screenshots
 
+# Screenshots
+
 ## Register
 
 <p align="center">
-  <img src="<img width="1896" height="801" alt="Screenshot 2026-05-07 152951" src="https://github.com/user-attachments/assets/aa59a542-18b3-4f7d-9f78-7cfff52dc2a0" />
-" />
+  <img width="90%" alt="Register" src="https://github.com/user-attachments/assets/aa59a542-18b3-4f7d-9f78-7cfff52dc2a0" />
 </p>
 
 ---
@@ -238,8 +247,7 @@ uvicorn main:app --reload
 ## Agent Management
 
 <p align="center">
-  <img src="<img width="1905" height="799" alt="Screenshot 2026-05-07 153022" src="https://github.com/user-attachments/assets/6c687e34-964f-43ae-aba5-e9e72c942bb2" />" />
- 
+  <img width="90%" alt="Agent Management" src="https://github.com/user-attachments/assets/6c687e34-964f-43ae-aba5-e9e72c942bb2" />
 </p>
 
 ---
@@ -247,7 +255,7 @@ uvicorn main:app --reload
 ## AI Test Chat
 
 <p align="center">
-  <img src="<img width="1890" height="764" alt="Screenshot 2026-05-07 153103" src="https://github.com/user-attachments/assets/8a05301c-ab0e-417c-ab52-3f932f13a446" />" />
+  <img width="90%" alt="AI Chat" src="https://github.com/user-attachments/assets/8a05301c-ab0e-417c-ab52-3f932f13a446" />
 </p>
 
 ---
@@ -255,7 +263,7 @@ uvicorn main:app --reload
 ## Call Logs
 
 <p align="center">
-  <img src="<img width="1895" height="775" alt="Screenshot 2026-05-07 153405" src="https://github.com/user-attachments/assets/7ca5da78-77d0-4dac-a1e9-dc30652da8df" />" />
+  <img width="90%" alt="Call Logs" src="https://github.com/user-attachments/assets/7ca5da78-77d0-4dac-a1e9-dc30652da8df" />
 </p>
 
 ---
@@ -263,8 +271,7 @@ uvicorn main:app --reload
 ## Scheduled Calls
 
 <p align="center">
-  <img src="<img width="1889" height="761" alt="Screenshot 2026-05-07 153440" src="https://github.com/user-attachments/assets/80a45370-a308-422b-a8a3-fabf4742bc0b" />
-" />
+  <img width="90%" alt="Scheduled Calls" src="https://github.com/user-attachments/assets/80a45370-a308-422b-a8a3-fabf4742bc0b" />
 </p>
 
 ---
@@ -272,6 +279,5 @@ uvicorn main:app --reload
 ## Analytics Dashboard
 
 <p align="center">
-  <img src="<img width="1911" height="779" alt="Screenshot 2026-05-07 153459" src="https://github.com/user-attachments/assets/1c322005-7e95-41d6-8565-73ee62f701df" />
-" />
+  <img width="90%" alt="Analytics Dashboard" src="https://github.com/user-attachments/assets/1c322005-7e95-41d6-8565-73ee62f701df" />
 </p>
